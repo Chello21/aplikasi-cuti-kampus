@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // GANTI DENGAN URL RAILWAY ANDA (contoh: 'https://proyek-anda.up.railway.app')
-const RAILWAY_URL = 'https://aplikasi-cuti-kampus.up.railway.app'; 
+const RAILWAY_URL = 'https://aplikasi-cuti-kampus-production.up.railway.app'; 
 
 const baseURL = `${RAILWAY_URL}/api`;
 
