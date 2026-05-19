@@ -15,9 +15,11 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
-app.use(cors({ 
-  origin: true, // Mengizinkan semua origin (localhost maupun Vercel)
-  credentials: true 
+app.use(cors({
+  origin: 'https://aplikasi-cuti-kampus.vercel.app',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
