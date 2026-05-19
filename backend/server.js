@@ -16,12 +16,7 @@ const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(cors({ 
-  origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps or curl)
-    if (!origin) return callback(null, true);
-    if (origin.startsWith('http://localhost:')) return callback(null, true);
-    callback(new Error('Not allowed by CORS'));
-  }, 
+  origin: true, // Mengizinkan semua origin (localhost maupun Vercel)
   credentials: true 
 }));
 app.use(express.json());
