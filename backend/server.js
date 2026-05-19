@@ -19,7 +19,11 @@ app.use(cors({
   origin: [
     'https://aplikasi-cuti-kampus.vercel.app',
     'http://localhost:5173',
-    'http://localhost:3000'
+    'http://localhost:3000',
+    'http://polimdoelektrocuti.ac.id',
+    'https://polimdoelektrocuti.ac.id',
+    'http://www.polimdoelektrocuti.ac.id',
+    'https://www.polimdoelektrocuti.ac.id'
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
