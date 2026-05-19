@@ -1,7 +1,13 @@
 import axios from 'axios';
 
+// GANTI DENGAN URL RAILWAY ANDA (contoh: 'https://proyek-anda.up.railway.app')
+const RAILWAY_URL = 'https://GANTI_DENGAN_URL_RAILWAY_ANDA'; 
+
+const isProduction = !window.location.hostname.includes('localhost');
+const baseURL = isProduction ? `${RAILWAY_URL}/api` : 'http://localhost:5000/api';
+
 const api = axios.create({
-  baseURL: 'http://localhost:5000/api',
+  baseURL,
   timeout: 30000,
 });
 

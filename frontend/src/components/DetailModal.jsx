@@ -1,6 +1,10 @@
 import StatusBadge from './StatusBadge';
 
-const BASE_URL = 'http://localhost:5000';
+// GANTI DENGAN URL RAILWAY ANDA (contoh: 'https://proyek-anda.up.railway.app')
+const RAILWAY_URL = 'https://GANTI_DENGAN_URL_RAILWAY_ANDA';
+
+const isProduction = !window.location.hostname.includes('localhost');
+const BASE_URL = isProduction ? RAILWAY_URL : 'http://localhost:5000';
 
 const DetailModal = ({ data, onClose, onVerify, role }) => {
   if (!data) return null;
