@@ -3,8 +3,7 @@ import axios from 'axios';
 // GANTI DENGAN URL RAILWAY ANDA (contoh: 'https://proyek-anda.up.railway.app')
 const RAILWAY_URL = 'https://aplikasi-cuti-kampus.up.railway.app'; 
 
-const isProduction = !window.location.hostname.includes('localhost');
-const baseURL = isProduction ? `${RAILWAY_URL}/api` : 'http://localhost:5000/api';
+const baseURL = `${RAILWAY_URL}/api`;
 
 const api = axios.create({
   baseURL,
