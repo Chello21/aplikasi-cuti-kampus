@@ -51,11 +51,11 @@ const Navbar = () => {
       {user && (
         <div className="navbar-user">
           <Link to={getDashboardLink()} className="btn btn-ghost btn-sm">
-            🏠 Dashboard
+            🏠 <span className="nav-btn-text">Dashboard</span>
           </Link>
           {user.role === 'mahasiswa' && (
             <Link to="/mahasiswa/form" className="btn btn-outline btn-sm">
-              ➕ Ajukan Cuti
+              ➕ <span className="nav-btn-text">Ajukan Cuti</span>
             </Link>
           )}
           <span className={`role-badge role-${user.role}`}>
