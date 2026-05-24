@@ -12,6 +12,16 @@ async function setup() {
     await sequelize.authenticate();
     console.log('✅ Koneksi ke Supabase berhasil!');
 
+    // Pastikan ENUM role di PostgreSQL diperbarui secara aman sebelum sync
+    try {
+      await sequelize.query(`ALTER TYPE "enum_users_role" ADD VALUE IF NOT EXISTS 'orang_tua'`);
+      await sequelize.query(`ALTER TYPE "enum_users_role" ADD VALUE IF NOT EXISTS 'akademik'`);
+      await sequelize.query(`ALTER TYPE "enum_users_role" ADD VALUE IF NOT EXISTS 'wadir'`);
+      console.log('✅ PostgreSQL role ENUM values verified');
+    } catch (e) {
+      console.log('⚠️ Perhatian saat update ENUM role:', e.message);
+    }
+
     // Sinkronisasi tabel (Mode alter agar data tidak terhapus saat ada perubahan kolom nanti)
     await sequelize.sync({ alter: true });
     console.log('✅ Tabel disinkronisasi');
@@ -21,6 +31,8 @@ async function setup() {
       { username: 'sekjur', password: 'sekjur123', nama: 'Sekretaris Jurusan', role: 'sekjur' },
       { username: 'kajur', password: 'kajur123', nama: 'Kepala Jurusan', role: 'kajur' },
       { username: 'kaprodi', password: 'kaprodi123', nama: 'Kepala Program Studi', role: 'kaprodi' },
+      { username: 'akademik', password: 'akademik123', nama: 'Bidang Akademik', role: 'akademik' },
+      { username: 'wadir', password: 'wadir123', nama: 'Wadir 1 Bidang Akademik', role: 'wadir' },
     ];
 
     for (const u of users) {

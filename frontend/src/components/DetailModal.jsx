@@ -10,6 +10,8 @@ const DetailModal = ({ data, onClose, onVerify, role }) => {
 
   const canVerifySekjur = role === 'sekjur';
   const canVerifyKajur  = role === 'kajur' && data.status_sekjur === 'Diterima';
+  const canVerifyAkademik = role === 'akademik' && data.status_kajur === 'Diterima';
+  const canVerifyWadir = role === 'wadir' && data.status_akademik === 'Diterima';
 
   const formatDate = (d) =>
     d ? new Date(d).toLocaleDateString('id-ID', { day:'2-digit', month:'long', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '-';
@@ -59,6 +61,10 @@ const DetailModal = ({ data, onClose, onVerify, role }) => {
                   <span>Reguler</span>
                 )}
               </div>
+            </div>
+            <div className="info-item">
+              <div className="info-label">Nama Orang Tua</div>
+              <div className="info-value">{data.mahasiswa?.parent?.nama || '-'}</div>
             </div>
             <div className="info-item info-full">
               <div className="info-label">Alamat</div>
@@ -111,6 +117,16 @@ const DetailModal = ({ data, onClose, onVerify, role }) => {
               {data.catatan_kajur && <div style={{ marginTop: 6, fontSize: '0.8rem', color: 'var(--text-secondary)' }}>📝 {data.catatan_kajur}</div>}
             </div>
             <div className="info-item">
+              <div className="info-label">Status Akademik</div>
+              <StatusBadge status={data.status_akademik} />
+              {data.catatan_akademik && <div style={{ marginTop: 6, fontSize: '0.8rem', color: 'var(--text-secondary)' }}>📝 {data.catatan_akademik}</div>}
+            </div>
+            <div className="info-item">
+              <div className="info-label">Status Wadir 1</div>
+              <StatusBadge status={data.status_wadir} />
+              {data.catatan_wadir && <div style={{ marginTop: 6, fontSize: '0.8rem', color: 'var(--text-secondary)' }}>📝 {data.catatan_wadir}</div>}
+            </div>
+            <div className="info-item">
               <div className="info-label">Tanggal Pengajuan</div>
               <div className="info-value">{formatDate(data.created_at)}</div>
             </div>
@@ -118,7 +134,7 @@ const DetailModal = ({ data, onClose, onVerify, role }) => {
         </div>
 
         {/* Aksi Verifikasi */}
-        {(canVerifySekjur || canVerifyKajur) && onVerify && (
+        {(canVerifySekjur || canVerifyKajur || canVerifyAkademik || canVerifyWadir) && onVerify && (
           <>
             <div className="divider" />
             <div>
@@ -132,8 +148,20 @@ const DetailModal = ({ data, onClose, onVerify, role }) => {
               )}
               {canVerifyKajur && (
                 <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginTop: '0.75rem' }}>
-                  <button onClick={() => onVerify(data.id, 'kajur', 'Diterima')} className="btn btn-success btn-sm">✅ Setujui Final</button>
-                  <button onClick={() => onVerify(data.id, 'kajur', 'Ditolak')} className="btn btn-danger btn-sm">❌ Tolak Final</button>
+                  <button onClick={() => onVerify(data.id, 'kajur', 'Diterima')} className="btn btn-success btn-sm">✅ Setujui</button>
+                  <button onClick={() => onVerify(data.id, 'kajur', 'Ditolak')} className="btn btn-danger btn-sm">❌ Tolak</button>
+                </div>
+              )}
+              {canVerifyAkademik && (
+                <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginTop: '0.75rem' }}>
+                  <button onClick={() => onVerify(data.id, 'akademik', 'Diterima')} className="btn btn-success btn-sm">✅ Setujui Dokumen</button>
+                  <button onClick={() => onVerify(data.id, 'akademik', 'Ditolak')} className="btn btn-danger btn-sm">❌ Tolak Dokumen</button>
+                </div>
+              )}
+              {canVerifyWadir && (
+                <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginTop: '0.75rem' }}>
+                  <button onClick={() => onVerify(data.id, 'wadir', 'Diterima')} className="btn btn-success btn-sm">✅ Setujui Final</button>
+                  <button onClick={() => onVerify(data.id, 'wadir', 'Ditolak')} className="btn btn-danger btn-sm">❌ Tolak Final</button>
                 </div>
               )}
             </div>

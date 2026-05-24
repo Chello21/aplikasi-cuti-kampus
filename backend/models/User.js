@@ -17,7 +17,7 @@ const User = sequelize.define('User', {
     allowNull: false,
   },
   role: {
-    type: DataTypes.ENUM('mahasiswa', 'sekjur', 'kajur', 'kaprodi'),
+    type: DataTypes.ENUM('mahasiswa', 'sekjur', 'kajur', 'kaprodi', 'orang_tua', 'akademik', 'wadir'),
     allowNull: false,
     defaultValue: 'mahasiswa',
   },
@@ -25,11 +25,24 @@ const User = sequelize.define('User', {
     type: DataTypes.STRING(100),
     allowNull: false,
   },
+  mahasiswa_id: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    references: { model: 'users', key: 'id' },
+  },
+  status_ortu: {
+    type: DataTypes.ENUM('Menunggu', 'Disetujui', 'Ditolak'),
+    allowNull: true,
+  },
 }, {
   tableName: 'users',
   timestamps: true,
   createdAt: 'created_at',
   updatedAt: false,
 });
+
+// Self-association for parent accounts linked to mahasiswa
+User.belongsTo(User, { foreignKey: 'mahasiswa_id', as: 'mahasiswa' });
+User.hasOne(User, { foreignKey: 'mahasiswa_id', as: 'parent' });
 
 module.exports = User;

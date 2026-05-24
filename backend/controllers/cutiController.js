@@ -17,6 +17,12 @@ const submitCuti = async (req, res) => {
       return res.status(400).json({ message: 'Maaf, pengajuan cuti hanya diperbolehkan untuk mahasiswa minimal semester 3.' });
     }
 
+    // Validasi akun Orang Tua harus sudah dibuat dan disetujui Sekjur
+    const parent = await User.findOne({ where: { mahasiswa_id: req.user.id, role: 'orang_tua' } });
+    if (!parent || parent.status_ortu !== 'Disetujui') {
+      return res.status(400).json({ message: 'Anda harus memiliki akun Orang Tua yang sudah disetujui Sekjur sebelum mengajukan cuti.' });
+    }
+
     const file_khs = req.files?.file_khs?.[0]?.filename || null;
     const file_ukt = req.files?.file_ukt?.[0]?.filename || null;
 
@@ -40,11 +46,21 @@ const getCuti = async (req, res) => {
   try {
     let where = {};
     if (req.user.role === 'mahasiswa') where.user_id = req.user.id;
-    if (req.user.role === 'kaprodi') where.status_kajur = 'Diterima';
+    if (req.user.role === 'kajur') where.status_sekjur = 'Diterima';
+    if (req.user.role === 'akademik') where.status_kajur = 'Diterima';
+    if (req.user.role === 'wadir') where.status_akademik = 'Diterima';
+    if (req.user.role === 'kaprodi') where.status_wadir = 'Diterima';
 
     const data = await PengajuanCuti.findAll({
       where,
-      include: [{ model: User, as: 'mahasiswa', attributes: ['nama', 'username'] }],
+      include: [
+        { 
+          model: User, 
+          as: 'mahasiswa', 
+          attributes: ['nama', 'username'],
+          include: [{ model: User, as: 'parent', attributes: ['nama', 'username', 'status_ortu'] }]
+        }
+      ],
       order: [['created_at', 'DESC']],
     });
     res.json({ data });
@@ -57,7 +73,14 @@ const getCuti = async (req, res) => {
 const getCutiById = async (req, res) => {
   try {
     const cuti = await PengajuanCuti.findByPk(req.params.id, {
-      include: [{ model: User, as: 'mahasiswa', attributes: ['nama', 'username'] }],
+      include: [
+        { 
+          model: User, 
+          as: 'mahasiswa', 
+          attributes: ['nama', 'username'],
+          include: [{ model: User, as: 'parent', attributes: ['nama', 'username', 'status_ortu'] }]
+        }
+      ],
     });
     if (!cuti) return res.status(404).json({ message: 'Data tidak ditemukan' });
 
@@ -111,16 +134,67 @@ const verifyKajur = async (req, res) => {
   }
 };
 
+// PUT /api/cuti/:id/verify-akademik
+const verifyAkademik = async (req, res) => {
+  try {
+    const { status_akademik, catatan_akademik } = req.body;
+    const validStatus = ['Diterima', 'Ditolak'];
+    if (!validStatus.includes(status_akademik)) {
+      return res.status(400).json({ message: 'Status tidak valid' });
+    }
+
+    const cuti = await PengajuanCuti.findByPk(req.params.id);
+    if (!cuti) return res.status(404).json({ message: 'Data tidak ditemukan' });
+    if (cuti.status_kajur !== 'Diterima') {
+      return res.status(400).json({ message: 'Pengajuan belum disetujui Ketua Jurusan' });
+    }
+
+    await cuti.update({ status_akademik, catatan_akademik: catatan_akademik || null });
+    res.json({ message: 'Verifikasi Akademik berhasil', data: cuti });
+  } catch (err) {
+    res.status(500).json({ message: 'Terjadi kesalahan server', error: err.message });
+  }
+};
+
+// PUT /api/cuti/:id/verify-wadir
+const verifyWadir = async (req, res) => {
+  try {
+    const { status_wadir, catatan_wadir } = req.body;
+    const validStatus = ['Diterima', 'Ditolak'];
+    if (!validStatus.includes(status_wadir)) {
+      return res.status(400).json({ message: 'Status tidak valid' });
+    }
+
+    const cuti = await PengajuanCuti.findByPk(req.params.id);
+    if (!cuti) return res.status(404).json({ message: 'Data tidak ditemukan' });
+    if (cuti.status_akademik !== 'Diterima') {
+      return res.status(400).json({ message: 'Pengajuan belum disetujui Bidang Akademik' });
+    }
+
+    await cuti.update({ status_wadir, catatan_wadir: catatan_wadir || null });
+    res.json({ message: 'Verifikasi Wakil Direktur I berhasil', data: cuti });
+  } catch (err) {
+    res.status(500).json({ message: 'Terjadi kesalahan server', error: err.message });
+  }
+};
+
 // GET /api/cuti/export/excel
 const exportExcel = async (req, res) => {
   try {
     const { mode } = req.query; // 'new' atau 'master'
     let where = {};
-    if (req.user.role === 'kaprodi') where.status_kajur = 'Diterima';
+    if (req.user.role === 'kaprodi') where.status_wadir = 'Diterima';
 
     const data = await PengajuanCuti.findAll({
       where,
-      include: [{ model: User, as: 'mahasiswa', attributes: ['nama', 'username'] }],
+      include: [
+        { 
+          model: User, 
+          as: 'mahasiswa', 
+          attributes: ['nama', 'username'],
+          include: [{ model: User, as: 'parent', attributes: ['nama', 'username'] }]
+        }
+      ],
       order: [['created_at', 'DESC']],
     });
 
@@ -202,14 +276,21 @@ const exportExcel = async (req, res) => {
 const getCetakData = async (req, res) => {
   try {
     const cuti = await PengajuanCuti.findByPk(req.params.id, {
-      include: [{ model: User, as: 'mahasiswa', attributes: ['nama', 'username'] }],
+      include: [
+        { 
+          model: User, 
+          as: 'mahasiswa', 
+          attributes: ['nama', 'username'],
+          include: [{ model: User, as: 'parent', attributes: ['nama', 'username'] }]
+        }
+      ],
     });
     if (!cuti) return res.status(404).json({ message: 'Data tidak ditemukan' });
     if (req.user.role === 'mahasiswa' && cuti.user_id !== req.user.id) {
       return res.status(403).json({ message: 'Akses ditolak' });
     }
-    if (cuti.status_kajur !== 'Diterima') {
-      return res.status(403).json({ message: 'Formulir hanya bisa dicetak setelah disetujui Kajur' });
+    if (cuti.status_wadir !== 'Diterima') {
+      return res.status(403).json({ message: 'Formulir hanya bisa dicetak setelah disetujui Wadir 1' });
     }
     res.json({ data: cuti });
   } catch (err) {
@@ -217,4 +298,4 @@ const getCetakData = async (req, res) => {
   }
 };
 
-module.exports = { submitCuti, getCuti, getCutiById, verifySekjur, verifyKajur, exportExcel, getCetakData };
+module.exports = { submitCuti, getCuti, getCutiById, verifySekjur, verifyKajur, verifyAkademik, verifyWadir, exportExcel, getCetakData };

@@ -57,6 +57,17 @@ const startServer = async () => {
   try {
     await sequelize.authenticate();
     console.log('✅ Database terhubung');
+    
+    // Pastikan ENUM role di PostgreSQL diperbarui secara aman sebelum sync
+    try {
+      await sequelize.query(`ALTER TYPE "enum_users_role" ADD VALUE IF NOT EXISTS 'orang_tua'`);
+      await sequelize.query(`ALTER TYPE "enum_users_role" ADD VALUE IF NOT EXISTS 'akademik'`);
+      await sequelize.query(`ALTER TYPE "enum_users_role" ADD VALUE IF NOT EXISTS 'wadir'`);
+      console.log('✅ PostgreSQL role ENUM values verified');
+    } catch (e) {
+      console.log('⚠️ Perhatian saat update ENUM role (kemungkinan dialect non-Postgres atau tipe belum dibuat):', e.message);
+    }
+
     await sequelize.sync({ alter: true });
     console.log('✅ Model tersinkronisasi');
     app.listen(PORT, () => console.log(`🚀 Server berjalan di http://localhost:${PORT}`));

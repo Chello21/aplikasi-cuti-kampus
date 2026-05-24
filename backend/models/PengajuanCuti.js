@@ -73,6 +73,22 @@ const PengajuanCuti = sequelize.define('PengajuanCuti', {
     type: DataTypes.TEXT,
     allowNull: true,
   },
+  status_akademik: {
+    type: DataTypes.ENUM('Menunggu', 'Diterima', 'Ditolak'),
+    defaultValue: 'Menunggu',
+  },
+  catatan_akademik: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+  },
+  status_wadir: {
+    type: DataTypes.ENUM('Menunggu', 'Diterima', 'Ditolak'),
+    defaultValue: 'Menunggu',
+  },
+  catatan_wadir: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+  },
 }, {
   tableName: 'pengajuan_cuti',
   timestamps: true,

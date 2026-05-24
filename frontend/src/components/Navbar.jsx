@@ -30,6 +30,8 @@ const Navbar = () => {
     if (user.role === 'sekjur') return '/sekjur/dashboard';
     if (user.role === 'kajur') return '/kajur/dashboard';
     if (user.role === 'kaprodi') return '/kaprodi/dashboard';
+    if (user.role === 'akademik') return '/akademik/dashboard';
+    if (user.role === 'wadir') return '/wadir/dashboard';
     return '/';
   };
 
@@ -61,7 +63,9 @@ const Navbar = () => {
             {user.role === 'sekjur' && '📋 '}
             {user.role === 'kajur' && '👑 '}
             {user.role === 'kaprodi' && '👨‍🏫 '}
-            {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+            {user.role === 'akademik' && '🏫 '}
+            {user.role === 'wadir' && '👑 '}
+            {user.role === 'akademik' ? 'Akademik' : user.role === 'wadir' ? 'Wadir 1' : user.role.charAt(0).toUpperCase() + user.role.slice(1)}
           </span>
           
           <div style={{ position: 'relative', marginLeft: '8px' }} ref={profileRef}>

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 import StatusBadge from '../../components/StatusBadge';
+import toast, { Toaster } from 'react-hot-toast';
 
 const StatusCuti = () => {
   const navigate = useNavigate();
@@ -9,24 +10,66 @@ const StatusCuti = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  // State untuk akun orang tua
+  const [parent, setParent] = useState(null);
+  const [loadingParent, setLoadingParent] = useState(true);
+  const [parentForm, setParentForm] = useState({ nama: '', username: '', password: '' });
+  const [parentError, setParentError] = useState('');
+  const [parentLoading, setParentLoading] = useState(false);
+
+  const fetchParent = async () => {
+    try {
+      const res = await api.get('/auth/parent');
+      setParent(res.data.data);
+    } catch (err) {
+      console.error('Gagal memuat data orang tua', err);
+    } finally {
+      setLoadingParent(false);
+    }
+  };
+
+  const fetchData = async () => {
+    try {
+      const res = await api.get('/cuti');
+      setData(res.data.data);
+    } catch (err) {
+      setError('Gagal memuat data pengajuan');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const res = await api.get('/cuti');
-        setData(res.data.data);
-      } catch (err) {
-        setError('Gagal memuat data pengajuan');
-      } finally {
-        setLoading(false);
-      }
-    };
+    fetchParent();
     fetchData();
   }, []);
 
-  const canCetak = (item) =>
-    item.status_sekjur === 'Diterima' && item.status_kajur === 'Diterima';
+  const handleCreateParent = async (e) => {
+    e.preventDefault();
+    setParentError('');
+    if (!parentForm.nama || !parentForm.username || !parentForm.password) {
+      setParentError('Semua field wajib diisi');
+      return;
+    }
+    setParentLoading(true);
+    try {
+      const res = await api.post('/auth/parent', parentForm);
+      toast.success(res.data.message);
+      setParent(res.data.data);
+    } catch (err) {
+      setParentError(err.response?.data?.message || 'Gagal mendaftarkan akun orang tua');
+    } finally {
+      setParentLoading(false);
+    }
+  };
 
-  if (loading) {
+  const canCetak = (item) =>
+    item.status_sekjur === 'Diterima' && 
+    item.status_kajur === 'Diterima' && 
+    item.status_akademik === 'Diterima' && 
+    item.status_wadir === 'Diterima';
+
+  if (loading || loadingParent) {
     return (
       <div className="loading-page">
         <div className="loading-spinner" style={{ width: 36, height: 36 }} />
@@ -35,100 +78,210 @@ const StatusCuti = () => {
     );
   }
 
+  // Jika belum membuat akun orang tua ATAU ditolak
+  const showParentForm = !parent || parent.status_ortu === 'Ditolak';
+
   return (
     <div className="page-container fade-in">
+      <Toaster position="top-right" />
+      
       <div className="page-header" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
           <h1 className="page-title">📊 Status Pengajuan Cuti</h1>
           <p className="page-subtitle">Pantau perkembangan pengajuan cuti Anda</p>
         </div>
-        <button onClick={() => navigate('/mahasiswa/form')} className="btn btn-primary">
-          ➕ Ajukan Cuti Baru
-        </button>
+        {parent?.status_ortu === 'Disetujui' && (
+          <button onClick={() => navigate('/mahasiswa/form')} className="btn btn-primary">
+            ➕ Ajukan Cuti Baru
+          </button>
+        )}
       </div>
 
       {error && <div className="alert alert-error">⚠️ {error}</div>}
 
-      {data.length === 0 ? (
-        <div className="card">
-          <div className="empty-state">
-            <div className="empty-state-icon">📭</div>
-            <h3>Belum Ada Pengajuan</h3>
-            <p>Anda belum pernah mengajukan cuti. Klik tombol "Ajukan Cuti Baru" untuk memulai.</p>
-            <button onClick={() => navigate('/mahasiswa/form')} className="btn btn-primary" style={{ marginTop: '1.5rem' }}>
-              ➕ Ajukan Sekarang
+      {/* Bagian Akun Orang Tua */}
+      {showParentForm ? (
+        <div className="card" style={{ maxWidth: '500px', margin: '0 auto 2rem auto', padding: '2rem' }}>
+          <div className="card-title" style={{ marginBottom: '1rem', color: 'var(--warning)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            🔒 Hubungkan Akun Orang Tua
+          </div>
+          <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '1.5rem', lineHeight: '1.6' }}>
+            Sebelum dapat mengajukan cuti akademik, Anda **wajib mendaftarkan akun Orang Tua** Anda terlebih dahulu. Akun ini memerlukan **persetujuan Sekjur** agar terverifikasi.
+          </p>
+
+          {parent?.status_ortu === 'Ditolak' && (
+            <div className="alert alert-error" style={{ marginBottom: '1rem' }}>
+              ⚠️ Akun Orang Tua sebelumnya ditolak oleh Sekjur. Silakan buat ulang dengan benar.
+            </div>
+          )}
+
+          {parentError && <div className="alert alert-error" style={{ marginBottom: '1rem' }}>⚠️ {parentError}</div>}
+
+          <form onSubmit={handleCreateParent}>
+            <div className="form-group">
+              <label className="form-label">Nama Lengkap Orang Tua *</label>
+              <input 
+                type="text" 
+                className="form-control" 
+                placeholder="Contoh: Budi Santoso"
+                value={parentForm.nama}
+                onChange={e => setParentForm({ ...parentForm, nama: e.target.value })}
+                required 
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Username untuk Orang Tua *</label>
+              <input 
+                type="text" 
+                className="form-control" 
+                placeholder="Contoh: budi_ortu"
+                value={parentForm.username}
+                onChange={e => setParentForm({ ...parentForm, username: e.target.value })}
+                required 
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Password Akun Orang Tua *</label>
+              <input 
+                type="password" 
+                className="form-control" 
+                placeholder="Masukkan password aman"
+                value={parentForm.password}
+                onChange={e => setParentForm({ ...parentForm, password: e.target.value })}
+                required 
+              />
+            </div>
+            <button type="submit" className="btn btn-warning btn-block" style={{ marginTop: '1rem' }} disabled={parentLoading}>
+              {parentLoading ? 'Mendaftarkan...' : '🔗 Daftarkan & Ajukan ke Sekjur'}
             </button>
+          </form>
+        </div>
+      ) : parent.status_ortu === 'Menunggu' ? (
+        <div className="card" style={{ maxWidth: '600px', margin: '0 auto 2rem auto', borderLeft: '4px solid var(--warning)', padding: '1.5rem' }}>
+          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+            <span style={{ fontSize: '1.75rem' }}>⏳</span>
+            <div>
+              <h3 style={{ color: 'var(--warning)', margin: 0, fontSize: '1rem' }}>Menunggu Persetujuan Akun Orang Tua</h3>
+              <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', margin: '4px 0 0 0', lineHeight: 1.5 }}>
+                Akun orang tua atas nama **{parent.nama}** (`{parent.username}`) telah diajukan. Saat ini sedang ditinjau oleh **Sekretaris Jurusan**. Formulir cuti akan terbuka setelah disetujui.
+              </p>
+            </div>
           </div>
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          {data.map((item) => (
-            <div key={item.id} className="card" style={{ padding: '1.5rem' }}>
-              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
-                <div style={{ flex: 1 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
-                    <h3 style={{ color: 'var(--text-primary)', fontSize: '1rem' }}>
-                      Pengajuan #{item.id}
-                    </h3>
-                    <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>
-                      {new Date(item.created_at).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })}
-                    </span>
-                  </div>
+        <div className="card" style={{ maxWidth: '600px', margin: '0 auto 2rem auto', borderLeft: '4px solid var(--success)', padding: '1rem 1.5rem', background: 'rgba(76,175,80,0.03)' }}>
+          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+            <span style={{ fontSize: '1.5rem' }}>✅</span>
+            <div>
+              <h4 style={{ color: 'var(--success)', margin: 0, fontSize: '0.9rem' }}>Akun Orang Tua Terhubung & Terverifikasi</h4>
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: '2px 0 0 0' }}>
+                Wali: **{parent.nama}** | Status persetujuan orang tua otomatis berlaku ketika mengajukan cuti.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem', marginBottom: '1rem' }}>
-                    <div>
-                      <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Program Studi</div>
-                      <div style={{ fontSize: '0.875rem', color: 'var(--text-primary)', fontWeight: 500 }}>{item.program_studi}</div>
-                    </div>
-                    <div>
-                      <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Status Sekjur</div>
-                      <StatusBadge status={item.status_sekjur} />
-                    </div>
-                    <div>
-                      <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>Status Kajur</div>
-                      <StatusBadge status={item.status_kajur} />
-                    </div>
-                  </div>
-
-                  <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', background: 'rgba(255,255,255,0.03)', padding: '0.75rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-light)' }}>
-                    <strong style={{ color: 'var(--text-muted)' }}>Alasan:</strong> {item.alasan_cuti.length > 150 ? item.alasan_cuti.slice(0, 150) + '...' : item.alasan_cuti}
-                  </div>
-
-                  {item.catatan_sekjur && (
-                    <div style={{ marginTop: '0.5rem', fontSize: '0.82rem', color: 'var(--warning)', display: 'flex', gap: '6px' }}>
-                      <span>📋 Catatan Sekjur:</span> <span style={{ color: 'var(--text-secondary)' }}>{item.catatan_sekjur}</span>
-                    </div>
-                  )}
-                  {item.catatan_kajur && (
-                    <div style={{ marginTop: '0.5rem', fontSize: '0.82rem', color: 'var(--info)', display: 'flex', gap: '6px' }}>
-                      <span>📋 Catatan Kajur:</span> <span style={{ color: 'var(--text-secondary)' }}>{item.catatan_kajur}</span>
-                    </div>
-                  )}
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'flex-end' }}>
-                  {canCetak(item) ? (
-                    <button
-                      id={`btn-cetak-${item.id}`}
-                      onClick={() => navigate(`/mahasiswa/cetak/${item.id}`)}
-                      className="btn btn-success"
-                    >
-                      🖨️ Cetak Formulir
-                    </button>
-                  ) : (
-                    <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', textAlign: 'right', maxWidth: 180 }}>
-                      {item.status_sekjur === 'Ditolak' || item.status_kajur === 'Ditolak'
-                        ? '❌ Pengajuan ditolak'
-                        : item.status_sekjur === 'Dipanggil'
-                        ? '📞 Harap datang ke jurusan'
-                        : '⏳ Menunggu persetujuan untuk cetak formulir'}
-                    </div>
-                  )}
-                </div>
+      {/* Daftar Pengajuan Cuti */}
+      {parent?.status_ortu === 'Disetujui' && (
+        <>
+          {data.length === 0 ? (
+            <div className="card">
+              <div className="empty-state">
+                <div className="empty-state-icon">📭</div>
+                <h3>Belum Ada Pengajuan</h3>
+                <p>Anda belum pernah mengajukan cuti. Klik tombol "Ajukan Cuti Baru" untuk memulai.</p>
+                <button onClick={() => navigate('/mahasiswa/form')} className="btn btn-primary" style={{ marginTop: '1.5rem' }}>
+                  ➕ Ajukan Sekarang
+                </button>
               </div>
             </div>
-          ))}
-        </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              {data.map((item) => (
+                <div key={item.id} className="card" style={{ padding: '1.5rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                        <h3 style={{ color: 'var(--text-primary)', fontSize: '1rem' }}>
+                          Pengajuan #{item.id}
+                        </h3>
+                        <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>
+                          {new Date(item.created_at).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })}
+                        </span>
+                      </div>
+
+                      {/* Progres Status Tracking */}
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.75rem', marginBottom: '1rem' }}>
+                        <div>
+                          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>1. Sekjur</div>
+                          <StatusBadge status={item.status_sekjur} />
+                        </div>
+                        <div>
+                          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>2. Kajur</div>
+                          <StatusBadge status={item.status_kajur} />
+                        </div>
+                        <div>
+                          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>3. Akademik</div>
+                          <StatusBadge status={item.status_akademik} />
+                        </div>
+                        <div>
+                          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>4. Wadir 1</div>
+                          <StatusBadge status={item.status_wadir} />
+                        </div>
+                      </div>
+
+                      <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', background: 'rgba(255,255,255,0.03)', padding: '0.75rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-light)', marginBottom: '0.5rem' }}>
+                        <strong style={{ color: 'var(--text-muted)' }}>Alasan:</strong> {item.alasan_cuti.length > 150 ? item.alasan_cuti.slice(0, 150) + '...' : item.alasan_cuti}
+                      </div>
+
+                      {item.catatan_sekjur && (
+                        <div style={{ marginTop: '0.5rem', fontSize: '0.82rem', color: 'var(--warning)', display: 'flex', gap: '6px' }}>
+                          <span>📋 Sekjur:</span> <span style={{ color: 'var(--text-secondary)' }}>{item.catatan_sekjur}</span>
+                        </div>
+                      )}
+                      {item.catatan_kajur && (
+                        <div style={{ marginTop: '0.5rem', fontSize: '0.82rem', color: 'var(--info)', display: 'flex', gap: '6px' }}>
+                          <span>📋 Kajur:</span> <span style={{ color: 'var(--text-secondary)' }}>{item.catatan_kajur}</span>
+                        </div>
+                      )}
+                      {item.catatan_akademik && (
+                        <div style={{ marginTop: '0.5rem', fontSize: '0.82rem', color: 'var(--info)', display: 'flex', gap: '6px' }}>
+                          <span>📋 Akademik:</span> <span style={{ color: 'var(--text-secondary)' }}>{item.catatan_akademik}</span>
+                        </div>
+                      )}
+                      {item.catatan_wadir && (
+                        <div style={{ marginTop: '0.5rem', fontSize: '0.82rem', color: 'var(--info)', display: 'flex', gap: '6px' }}>
+                          <span>📋 Wadir 1:</span> <span style={{ color: 'var(--text-secondary)' }}>{item.catatan_wadir}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'flex-end' }}>
+                      {canCetak(item) ? (
+                        <button
+                          id={`btn-cetak-${item.id}`}
+                          onClick={() => navigate(`/mahasiswa/cetak/${item.id}`)}
+                          className="btn btn-success"
+                        >
+                          🖨️ Cetak Surat Permohonan
+                        </button>
+                      ) : (
+                        <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', textAlign: 'right', maxWidth: 180 }}>
+                          {item.status_sekjur === 'Ditolak' || item.status_kajur === 'Ditolak' || item.status_akademik === 'Ditolak' || item.status_wadir === 'Ditolak'
+                            ? '❌ Pengajuan ditolak'
+                            : item.status_sekjur === 'Dipanggil'
+                            ? '📞 Harap datang ke jurusan'
+                            : '⏳ Menunggu persetujuan Wadir 1 untuk cetak'}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
       )}
     </div>
   );

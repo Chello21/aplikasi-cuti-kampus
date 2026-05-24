@@ -29,7 +29,7 @@ const RegisterPage = () => {
         nama: form.nama,
       });
       login(res.data.token, res.data.user);
-      navigate('/mahasiswa/form');
+      navigate('/mahasiswa/status');
     } catch (err) {
       setError(err.response?.data?.message || 'Registrasi gagal, coba lagi');
     } finally {

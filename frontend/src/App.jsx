@@ -13,6 +13,8 @@ import CetakFormulir from './pages/mahasiswa/CetakFormulir';
 import DashboardSekjur from './pages/sekjur/DashboardSekjur';
 import DashboardKajur  from './pages/kajur/DashboardKajur';
 import DashboardKaprodi from './pages/kaprodi/DashboardKaprodi';
+import DashboardAkademik from './pages/akademik/DashboardAkademik';
+import DashboardWadir from './pages/wadir/DashboardWadir';
 
 const RootRedirect = () => {
   const { user, loading } = useAuth();
@@ -27,6 +29,8 @@ const RootRedirect = () => {
   if (user.role === 'sekjur')    return <Navigate to="/sekjur/dashboard" replace />;
   if (user.role === 'kajur')     return <Navigate to="/kajur/dashboard" replace />;
   if (user.role === 'kaprodi')   return <Navigate to="/kaprodi/dashboard" replace />;
+  if (user.role === 'akademik')  return <Navigate to="/akademik/dashboard" replace />;
+  if (user.role === 'wadir')     return <Navigate to="/wadir/dashboard" replace />;
   return <Navigate to="/login" replace />;
 };
 
@@ -82,6 +86,20 @@ function AppRoutes() {
         <Route path="/kaprodi/dashboard" element={
           <ProtectedRoute roles={['kaprodi']}>
             <AppLayout><DashboardKaprodi /></AppLayout>
+          </ProtectedRoute>
+        } />
+
+        {/* Akademik routes */}
+        <Route path="/akademik/dashboard" element={
+          <ProtectedRoute roles={['akademik']}>
+            <AppLayout><DashboardAkademik /></AppLayout>
+          </ProtectedRoute>
+        } />
+
+        {/* Wadir routes */}
+        <Route path="/wadir/dashboard" element={
+          <ProtectedRoute roles={['wadir']}>
+            <AppLayout><DashboardWadir /></AppLayout>
           </ProtectedRoute>
         } />
 

@@ -22,6 +22,8 @@ const LoginPage = () => {
       else if (role === 'sekjur') navigate('/sekjur/dashboard');
       else if (role === 'kajur') navigate('/kajur/dashboard');
       else if (role === 'kaprodi') navigate('/kaprodi/dashboard');
+      else if (role === 'akademik') navigate('/akademik/dashboard');
+      else if (role === 'wadir') navigate('/wadir/dashboard');
     } catch (err) {
       setError(err.response?.data?.message || 'Login gagal, coba lagi');
     } finally {

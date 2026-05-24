@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
@@ -25,6 +25,24 @@ const FormCuti = () => {
   const [loading, setLoading] = useState(false);
   const khsRef = useRef();
   const uktRef = useRef();
+
+  // Guard: cek status akun orang tua
+  const [parentStatus, setParentStatus] = useState(null); // null = loading
+  const [parentNama, setParentNama] = useState('');
+
+  useEffect(() => {
+    const checkParent = async () => {
+      try {
+        const res = await api.get('/auth/parent');
+        const p = res.data.data;
+        setParentStatus(p ? p.status_ortu : 'Tidak Ada');
+        setParentNama(p ? p.nama : '');
+      } catch {
+        setParentStatus('Tidak Ada');
+      }
+    };
+    checkParent();
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -53,6 +71,61 @@ const FormCuti = () => {
       setLoading(false);
     }
   };
+
+  // Tampilkan loading saat cek status ortu
+  if (parentStatus === null) {
+    return (
+      <div className="loading-page">
+        <div className="loading-spinner" style={{ width: 36, height: 36 }} />
+        <p>Memeriksa kelengkapan akun...</p>
+      </div>
+    );
+  }
+
+  // Blokir jika orang tua belum ada atau belum disetujui
+  if (parentStatus !== 'Disetujui') {
+    const isWaiting = parentStatus === 'Menunggu';
+    const isDitolak = parentStatus === 'Ditolak';
+    return (
+      <div className="page-container fade-in">
+        <div style={{
+          maxWidth: 520,
+          margin: '4rem auto',
+          textAlign: 'center',
+          padding: '3rem 2rem',
+          background: 'var(--surface)',
+          borderRadius: 'var(--radius)',
+          border: `2px solid ${isWaiting ? 'var(--warning)' : 'var(--error)'}`,
+          boxShadow: 'var(--shadow-lg)',
+        }}>
+          <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>
+            {isWaiting ? '⏳' : isDitolak ? '❌' : '🔒'}
+          </div>
+          <h2 style={{ color: isWaiting ? 'var(--warning)' : 'var(--error)', margin: '0 0 0.75rem 0', fontSize: '1.25rem' }}>
+            {isWaiting
+              ? 'Menunggu Persetujuan Sekjur'
+              : isDitolak
+              ? 'Akun Orang Tua Ditolak'
+              : 'Akun Orang Tua Belum Didaftarkan'}
+          </h2>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: 1.7, marginBottom: '2rem' }}>
+            {isWaiting
+              ? <>Akun orang tua atas nama <strong>{parentNama}</strong> sedang menunggu verifikasi dari <strong>Sekretaris Jurusan</strong>. Form cuti akan terbuka setelah disetujui.</>
+              : isDitolak
+              ? <>Akun orang tua sebelumnya <strong>ditolak</strong> oleh Sekjur. Silakan kembali ke dashboard dan daftarkan ulang akun orang tua.</>
+              : <>Anda belum mendaftarkan akun orang tua. Silakan daftarkan terlebih dahulu dan tunggu persetujuan Sekjur.</>
+            }
+          </p>
+          <button
+            className="btn btn-primary btn-lg"
+            onClick={() => navigate('/mahasiswa/status')}
+          >
+            ← Kembali ke Dashboard
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="page-container fade-in">

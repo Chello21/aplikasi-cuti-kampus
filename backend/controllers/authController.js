@@ -63,4 +63,108 @@ const getMe = async (req, res) => {
   res.json({ user: { id: req.user.id, username: req.user.username, nama: req.user.nama, role: req.user.role } });
 };
 
-module.exports = { register, login, getMe };
+// POST /api/auth/parent
+const createParentAccount = async (req, res) => {
+  try {
+    const { nama, username, password } = req.body;
+    if (!nama || !username || !password) {
+      return res.status(400).json({ message: 'Semua field wajib diisi' });
+    }
+    if (req.user.role !== 'mahasiswa') {
+      return res.status(403).json({ message: 'Akses ditolak: Hanya mahasiswa yang dapat membuat akun Orang Tua' });
+    }
+    
+    // Cari apakah mahasiswa sudah punya akun orang tua
+    const existingParent = await User.findOne({ where: { mahasiswa_id: req.user.id, role: 'orang_tua' } });
+    if (existingParent) {
+      if (existingParent.status_ortu === 'Disetujui') {
+        return res.status(400).json({ message: 'Akun Orang Tua sudah dibuat dan telah disetujui' });
+      }
+      if (existingParent.status_ortu === 'Menunggu') {
+        return res.status(400).json({ message: 'Akun Orang Tua sedang menunggu persetujuan Sekjur' });
+      }
+      // Jika status ditolak, hapus pengajuan lama untuk membolehkan pengajuan ulang
+      await existingParent.destroy();
+    }
+
+    // Pastikan username belum dipakai
+    const usernameExists = await User.findOne({ where: { username } });
+    if (usernameExists) {
+      return res.status(400).json({ message: 'Username sudah digunakan oleh pengguna lain' });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const parent = await User.create({
+      nama,
+      username,
+      password: hashedPassword,
+      role: 'orang_tua',
+      mahasiswa_id: req.user.id,
+      status_ortu: 'Menunggu'
+    });
+
+    res.status(201).json({ message: 'Akun Orang Tua berhasil diajukan, menunggu persetujuan Sekjur', data: parent });
+  } catch (err) {
+    res.status(500).json({ message: 'Terjadi kesalahan server', error: err.message });
+  }
+};
+
+// GET /api/auth/parent
+const getParentAccount = async (req, res) => {
+  try {
+    if (req.user.role !== 'mahasiswa') {
+      return res.status(403).json({ message: 'Hanya mahasiswa yang dapat mengakses data ini' });
+    }
+    const parent = await User.findOne({ 
+      where: { mahasiswa_id: req.user.id, role: 'orang_tua' },
+      attributes: ['id', 'nama', 'username', 'status_ortu', 'created_at']
+    });
+    res.json({ data: parent });
+  } catch (err) {
+    res.status(500).json({ message: 'Terjadi kesalahan server', error: err.message });
+  }
+};
+
+// GET /api/auth/parent/pending
+const getPendingParents = async (req, res) => {
+  try {
+    if (req.user.role !== 'sekjur') {
+      return res.status(403).json({ message: 'Akses ditolak' });
+    }
+    const pending = await User.findAll({
+      where: { role: 'orang_tua', status_ortu: 'Menunggu' },
+      include: [{ model: User, as: 'mahasiswa', attributes: ['nama', 'username'] }],
+      order: [['created_at', 'DESC']]
+    });
+    res.json({ data: pending });
+  } catch (err) {
+    res.status(500).json({ message: 'Terjadi kesalahan server', error: err.message });
+  }
+};
+
+// PUT /api/auth/parent/:id/verify
+const verifyParentAccount = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status_ortu } = req.body; // 'Disetujui' atau 'Ditolak'
+    
+    if (req.user.role !== 'sekjur') {
+      return res.status(403).json({ message: 'Akses ditolak' });
+    }
+    if (!['Disetujui', 'Ditolak'].includes(status_ortu)) {
+      return res.status(400).json({ message: 'Status tidak valid' });
+    }
+
+    const parent = await User.findByPk(id);
+    if (!parent || parent.role !== 'orang_tua') {
+      return res.status(404).json({ message: 'Akun Orang Tua tidak ditemukan' });
+    }
+
+    await parent.update({ status_ortu });
+    res.json({ message: `Akun Orang Tua berhasil ${status_ortu.toLowerCase()}`, data: parent });
+  } catch (err) {
+    res.status(500).json({ message: 'Terjadi kesalahan server', error: err.message });
+  }
+};
+
+module.exports = { register, login, getMe, createParentAccount, getParentAccount, getPendingParents, verifyParentAccount };

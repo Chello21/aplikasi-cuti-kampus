@@ -176,33 +176,46 @@ const CetakFormulir = () => {
           Demikian permohonan saya , kiranya Bapak / Ibu dapat mempertimbangkan dan mengabulkan permohonan ini atasnya terima kasih.
         </div>
 
-        {/* Tanda Tangan Mahasiswa & Ortu */}
+        {/* Tanda Tangan Orang Tua & Mahasiswa */}
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '40px' }}>
           <div style={{ textAlign: 'center', width: '250px' }}>
             Orang Tua / Wali
-            <div style={{ height: '80px' }}></div>
-            (........................................)
+            <div style={{ height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              {data.mahasiswa?.parent ? (
+                <div style={{ border: '2px solid #2e7d32', color: '#2e7d32', padding: '5px', fontWeight: 'bold', transform: 'rotate(-5deg)', fontSize: '14px', borderRadius: '4px' }}>
+                  APPROVED SYSTEM
+                </div>
+              ) : <span>-</span>}
+            </div>
+            ( <strong>{data.mahasiswa?.parent?.nama || '........................................'}</strong> )
           </div>
           <div style={{ textAlign: 'center', width: '250px' }}>
             Yang Bermohon,
-            <div style={{ height: '80px' }}></div>
-            ( <strong>{data.nama}</strong> )
+            <div style={{ height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ border: '2px solid #2e7d32', color: '#2e7d32', padding: '5px', fontWeight: 'bold', transform: 'rotate(-5deg)', fontSize: '14px', borderRadius: '4px' }}>
+                APPROVED SYSTEM
+              </div>
+            </div>
+            ( <strong>{data.nama}</strong> ) <br/>
+            NIM. {data.nim}
           </div>
         </div>
 
-        {/* Mengetahui Kajur */}
-        <div style={{ textAlign: 'center', width: '100%', marginBottom: '40px' }}>
-          Mengetahui : <br/>
-          Ketua Jurusan ........................................
-          <div style={{ height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-             {data.status_kajur === 'Diterima' && (
-               <div style={{ border: '2px solid #2e7d32', color: '#2e7d32', padding: '5px', fontWeight: 'bold', transform: 'rotate(-5deg)', fontSize: '14px', borderRadius: '4px' }}>
-                 APPROVED SYSTEM
-               </div>
-             )}
+        {/* Mengetahui Pejabat multi-approval */}
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '40px' }}>
+          <div style={{ textAlign: 'center', width: '300px' }}>
+            Menyetujui : <br/>
+            Wakil Direktur I Bidang Akademik
+            <div style={{ height: '60px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+               {data.status_wadir === 'Diterima' && (
+                 <div style={{ border: '2px solid #2e7d32', color: '#2e7d32', padding: '5px', fontWeight: 'bold', transform: 'rotate(-5deg)', fontSize: '12px', borderRadius: '4px' }}>
+                   APPROVED SYSTEM
+                 </div>
+               )}
+            </div>
+            <div style={{ width: '200px', borderTop: '1px solid #000', margin: '0 auto' }}></div>
+            Nip : ........................................
           </div>
-          <div style={{ width: '250px', borderTop: '1px solid #000', margin: '0 auto' }}></div>
-          Nip : ........................................
         </div>
 
         {/* Catatan */}
