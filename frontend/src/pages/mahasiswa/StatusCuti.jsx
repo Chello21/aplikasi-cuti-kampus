@@ -10,10 +10,10 @@ const StatusCuti = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // State untuk akun orang tua
+  // State untuk verifikasi cuti mahasiswa
   const [parent, setParent] = useState(null);
   const [loadingParent, setLoadingParent] = useState(true);
-  const [parentForm, setParentForm] = useState({ nama: '', username: '', password: '', hubungan_ortu: '' });
+  const [parentForm, setParentForm] = useState({ nama: '', hubungan_ortu: '' });
   const [parentError, setParentError] = useState('');
   const [parentLoading, setParentLoading] = useState(false);
 
@@ -22,7 +22,7 @@ const StatusCuti = () => {
       const res = await api.get('/auth/parent');
       setParent(res.data.data);
     } catch (err) {
-      console.error('Gagal memuat data orang tua', err);
+      console.error('Gagal memuat data verifikasi', err);
     } finally {
       setLoadingParent(false);
     }
@@ -44,10 +44,10 @@ const StatusCuti = () => {
     fetchData();
   }, []);
 
-  const handleCreateParent = async (e) => {
+  const handleSubmitVerifikasi = async (e) => {
     e.preventDefault();
     setParentError('');
-    if (!parentForm.nama || !parentForm.username || !parentForm.password || !parentForm.hubungan_ortu) {
+    if (!parentForm.nama || !parentForm.hubungan_ortu) {
       setParentError('Semua field wajib diisi');
       return;
     }
@@ -57,7 +57,7 @@ const StatusCuti = () => {
       toast.success(res.data.message);
       setParent(res.data.data);
     } catch (err) {
-      setParentError(err.response?.data?.message || 'Gagal mengajukan verifikasi orang tua');
+      setParentError(err.response?.data?.message || 'Gagal mengajukan verifikasi cuti');
     } finally {
       setParentLoading(false);
     }
@@ -78,7 +78,7 @@ const StatusCuti = () => {
     );
   }
 
-  // Jika belum membuat akun orang tua ATAU ditolak
+  // Jika belum melakukan verifikasi ATAU ditolak
   const showParentForm = !parent || parent.status_ortu === 'Ditolak';
 
   return (
@@ -99,37 +99,25 @@ const StatusCuti = () => {
 
       {error && <div className="alert alert-error">⚠️ {error}</div>}
 
-      {/* Bagian Akun Orang Tua */}
+      {/* Bagian Verifikasi Cuti Mahasiswa */}
       {showParentForm ? (
         <div className="card" style={{ maxWidth: '500px', margin: '0 auto 2rem auto', padding: '2rem' }}>
           <div className="card-title" style={{ marginBottom: '1rem', color: 'var(--warning)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            🔒 Verifikasi Akun Cuti oleh Orang Tua
+            🔒 Verifikasi Cuti Mahasiswa
           </div>
           <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '1.5rem', lineHeight: '1.6' }}>
-            Sebelum dapat mengajukan cuti akademik, Anda **wajib mengirimkan Verifikasi Pengajuan Cuti kepada Orang Tua** Anda terlebih dahulu. Ini berfungsi sebagai pemberitahuan resmi bahwa Anda akan mengambil cuti akademik, dan memerlukan persetujuan verifikasi langsung dari **Sekretaris Jurusan** agar akun terhubung secara sah.
+            Sebelum dapat mengajukan cuti akademik, Anda wajib melakukan <strong>verifikasi cuti</strong> terlebih dahulu. Verifikasi ini berfungsi sebagai <strong>pemberitahuan resmi kepada orang tua/wali</strong> bahwa Anda akan mengambil cuti akademik. Verifikasi memerlukan persetujuan dari <strong>Sekretaris Jurusan</strong>.
           </p>
 
           {parent?.status_ortu === 'Ditolak' && (
             <div className="alert alert-error" style={{ marginBottom: '1rem' }}>
-              ⚠️ Pengajuan verifikasi Orang Tua sebelumnya ditolak oleh Sekjur. Silakan ajukan ulang dengan benar.
+              ⚠️ Pengajuan verifikasi sebelumnya ditolak oleh Sekjur. Silakan ajukan ulang dengan data yang benar.
             </div>
           )}
 
           {parentError && <div className="alert alert-error" style={{ marginBottom: '1rem' }}>⚠️ {parentError}</div>}
 
-          <form onSubmit={handleCreateParent}>
-            <div className="form-group">
-              <label className="form-label">Nama Lengkap Orang Tua / Wali *</label>
-              <input 
-                type="text" 
-                className="form-control" 
-                placeholder="Contoh: Budi Santoso"
-                value={parentForm.nama}
-                onChange={e => setParentForm({ ...parentForm, nama: e.target.value })}
-                required 
-              />
-            </div>
-            
+          <form onSubmit={handleSubmitVerifikasi}>
             <div className="form-group">
               <label className="form-label">Hubungan Keluarga *</label>
               <select
@@ -146,29 +134,19 @@ const StatusCuti = () => {
             </div>
 
             <div className="form-group">
-              <label className="form-label">Username untuk Orang Tua / Wali *</label>
+              <label className="form-label">Nama Lengkap Orang Tua / Wali *</label>
               <input 
                 type="text" 
                 className="form-control" 
-                placeholder="Contoh: budi_ortu"
-                value={parentForm.username}
-                onChange={e => setParentForm({ ...parentForm, username: e.target.value })}
+                placeholder="Contoh: Budi Santoso"
+                value={parentForm.nama}
+                onChange={e => setParentForm({ ...parentForm, nama: e.target.value })}
                 required 
               />
             </div>
-            <div className="form-group">
-              <label className="form-label">Password Akun Orang Tua / Wali *</label>
-              <input 
-                type="password" 
-                className="form-control" 
-                placeholder="Masukkan password aman"
-                value={parentForm.password}
-                onChange={e => setParentForm({ ...parentForm, password: e.target.value })}
-                required 
-              />
-            </div>
+
             <button type="submit" className="btn btn-warning btn-block" style={{ marginTop: '1rem' }} disabled={parentLoading}>
-              {parentLoading ? 'Mengirimkan...' : '🔗 Kirim Verifikasi & Ajukan ke Sekjur'}
+              {parentLoading ? 'Mengirimkan...' : '📩 Kirim Verifikasi ke Sekjur'}
             </button>
           </form>
         </div>
@@ -177,15 +155,15 @@ const StatusCuti = () => {
           <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
             <span style={{ fontSize: '1.75rem', marginTop: '2px' }}>⏳</span>
             <div style={{ flex: 1 }}>
-              <h3 style={{ color: 'var(--warning)', margin: 0, fontSize: '1rem' }}>Menunggu Persetujuan Verifikasi Cuti Orang Tua</h3>
+              <h3 style={{ color: 'var(--warning)', margin: 0, fontSize: '1rem' }}>Menunggu Persetujuan Verifikasi Cuti</h3>
               <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', margin: '4px 0 0 0', lineHeight: 1.5 }}>
-                Pengajuan verifikasi cuti oleh Orang Tua/Wali (<strong>{parent.hubungan_ortu}</strong>) atas nama **{parent.nama}** (`{parent.username}`) telah diajukan. Saat ini berkas verifikasi sedang ditinjau oleh **Sekretaris Jurusan**. Formulir cuti akan terbuka setelah disetujui.
+                Verifikasi cuti dengan data Orang Tua/Wali (<strong>{parent.hubungan_ortu}</strong>) atas nama <strong>{parent.nama}</strong> telah diajukan. Saat ini sedang ditinjau oleh <strong>Sekretaris Jurusan</strong>. Formulir cuti akan terbuka setelah disetujui.
               </p>
               
               {/* Button WA Integrasi */}
               {(() => {
                 const localUser = JSON.parse(localStorage.getItem('user') || '{}');
-                const message = `Halo Bapak/Ibu Sekjur, saya ${localUser.nama || ''} (NIM: ${localUser.username || ''}) ingin memohon konfirmasi persetujuan verifikasi akun cuti oleh Orang Tua/Wali saya (${parent.hubungan_ortu}) atas nama ${parent.nama} di sistem.\n\nDetail Akun Orang Tua:\n- Nama: ${parent.nama}\n- Hubungan: ${parent.hubungan_ortu}\n- Username: ${parent.username}\n\nMohon bantuannya untuk menyetujui verifikasi akun tersebut agar saya bisa melanjutkan pengisian form cuti. Terima kasih.`;
+                const message = `Halo Bapak/Ibu Sekjur, saya ${localUser.nama || ''} (NIM: ${localUser.username || ''}) ingin memohon konfirmasi persetujuan verifikasi cuti saya.\n\nData Orang Tua/Wali:\n- Nama: ${parent.nama}\n- Hubungan: ${parent.hubungan_ortu}\n\nMohon bantuannya untuk menyetujui verifikasi tersebut agar saya bisa melanjutkan pengisian form cuti. Terima kasih.`;
                 const waLink = `https://wa.me/6285176803384?text=${encodeURIComponent(message)}`;
                 return (
                   <a 
@@ -217,9 +195,9 @@ const StatusCuti = () => {
           <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
             <span style={{ fontSize: '1.5rem' }}>✅</span>
             <div>
-              <h4 style={{ color: 'var(--success)', margin: 0, fontSize: '0.9rem' }}>Verifikasi Akun Cuti oleh Orang Tua Berhasil</h4>
+              <h4 style={{ color: 'var(--success)', margin: 0, fontSize: '0.9rem' }}>Verifikasi Cuti Mahasiswa Berhasil Disetujui</h4>
               <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: '2px 0 0 0' }}>
-                Wali Terverifikasi: <strong>{parent.nama} ({parent.hubungan_ortu})</strong> | Notifikasi/konfirmasi cuti telah disetujui oleh Sekjur.
+                Orang Tua/Wali: <strong>{parent.nama} ({parent.hubungan_ortu})</strong> — Verifikasi telah disetujui oleh Sekjur. Anda dapat mengajukan cuti.
               </p>
             </div>
           </div>

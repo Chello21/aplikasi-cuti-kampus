@@ -63,40 +63,37 @@ const getMe = async (req, res) => {
   res.json({ user: { id: req.user.id, username: req.user.username, nama: req.user.nama, role: req.user.role } });
 };
 
-// POST /api/auth/parent
+// POST /api/auth/parent - Verifikasi Cuti Mahasiswa
 const createParentAccount = async (req, res) => {
   try {
-    const { nama, username, password, hubungan_ortu } = req.body;
-    if (!nama || !username || !password || !hubungan_ortu) {
-      return res.status(400).json({ message: 'Semua field wajib diisi' });
+    const { nama, hubungan_ortu } = req.body;
+    if (!nama || !hubungan_ortu) {
+      return res.status(400).json({ message: 'Nama orang tua dan hubungan keluarga wajib diisi' });
     }
     if (req.user.role !== 'mahasiswa') {
-      return res.status(403).json({ message: 'Akses ditolak: Hanya mahasiswa yang dapat mengajukan verifikasi orang tua' });
+      return res.status(403).json({ message: 'Akses ditolak: Hanya mahasiswa yang dapat mengajukan verifikasi cuti' });
     }
     
-    // Cari apakah mahasiswa sudah punya akun orang tua
+    // Cari apakah mahasiswa sudah punya data verifikasi
     const existingParent = await User.findOne({ where: { mahasiswa_id: req.user.id, role: 'orang_tua' } });
     if (existingParent) {
       if (existingParent.status_ortu === 'Disetujui') {
-        return res.status(400).json({ message: 'Akun Orang Tua sudah diverifikasi dan disetujui' });
+        return res.status(400).json({ message: 'Verifikasi cuti sudah disetujui' });
       }
       if (existingParent.status_ortu === 'Menunggu') {
-        return res.status(400).json({ message: 'Akun Orang Tua sedang menunggu persetujuan verifikasi Sekjur' });
+        return res.status(400).json({ message: 'Verifikasi cuti sedang menunggu persetujuan Sekjur' });
       }
       // Jika status ditolak, hapus pengajuan lama untuk membolehkan pengajuan ulang
       await existingParent.destroy();
     }
 
-    // Pastikan username belum dipakai
-    const usernameExists = await User.findOne({ where: { username } });
-    if (usernameExists) {
-      return res.status(400).json({ message: 'Username sudah digunakan oleh pengguna lain' });
-    }
+    // Auto-generate username dan password (tidak digunakan oleh user, hanya untuk kebutuhan database)
+    const autoUsername = `verif_${req.user.id}_${Date.now()}`;
+    const hashedPassword = await bcrypt.hash(`auto_${Date.now()}`, 10);
 
-    const hashedPassword = await bcrypt.hash(password, 10);
     const parent = await User.create({
       nama,
-      username,
+      username: autoUsername,
       password: hashedPassword,
       role: 'orang_tua',
       mahasiswa_id: req.user.id,
@@ -104,7 +101,7 @@ const createParentAccount = async (req, res) => {
       hubungan_ortu
     });
 
-    res.status(201).json({ message: 'Verifikasi akun cuti oleh orang tua berhasil diajukan, menunggu persetujuan Sekjur', data: parent });
+    res.status(201).json({ message: 'Verifikasi cuti berhasil diajukan, menunggu persetujuan Sekjur', data: parent });
   } catch (err) {
     res.status(500).json({ message: 'Terjadi kesalahan server', error: err.message });
   }

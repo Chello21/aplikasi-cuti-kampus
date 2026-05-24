@@ -296,7 +296,7 @@ const DashboardSekjur = () => {
           {loadingParents ? (
             <div className="loading-page" style={{ minHeight: 200 }}>
               <div className="loading-spinner" style={{ width: 36, height: 36 }} />
-              <p>Memuat data orang tua...</p>
+              <p>Memuat data verifikasi...</p>
             </div>
           ) : pendingParents.length === 0 ? (
             <div className="empty-state" style={{ padding: '3rem 1rem' }}>
@@ -314,7 +314,7 @@ const DashboardSekjur = () => {
                     <th>Nama Mahasiswa</th>
                     <th>Orang Tua / Wali</th>
                     <th>Hubungan</th>
-                    <th>Username Ortu</th>
+
                     <th>Tanggal Daftar</th>
                     <th>Aksi</th>
                   </tr>
@@ -338,7 +338,7 @@ const DashboardSekjur = () => {
                           {parent.hubungan_ortu || 'Orang Tua'}
                         </span>
                       </td>
-                      <td><code>{parent.username}</code></td>
+
                       <td style={{ color: 'var(--text-muted)', fontSize: '0.82rem' }}>{formatDate(parent.created_at)}</td>
                       <td>
                         <div style={{ display: 'flex', gap: '8px' }}>

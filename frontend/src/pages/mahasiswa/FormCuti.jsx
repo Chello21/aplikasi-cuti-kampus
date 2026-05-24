@@ -82,7 +82,7 @@ const FormCuti = () => {
     );
   }
 
-  // Blokir jika orang tua belum ada atau belum disetujui
+  // Blokir jika verifikasi cuti belum ada atau belum disetujui
   if (parentStatus !== 'Disetujui') {
     const isWaiting = parentStatus === 'Menunggu';
     const isDitolak = parentStatus === 'Ditolak';
@@ -103,17 +103,17 @@ const FormCuti = () => {
           </div>
           <h2 style={{ color: isWaiting ? 'var(--warning)' : 'var(--error)', margin: '0 0 0.75rem 0', fontSize: '1.25rem' }}>
             {isWaiting
-              ? 'Menunggu Persetujuan Sekjur'
+              ? 'Menunggu Persetujuan Verifikasi Cuti'
               : isDitolak
-              ? 'Akun Orang Tua Ditolak'
-              : 'Akun Orang Tua Belum Didaftarkan'}
+              ? 'Verifikasi Cuti Ditolak'
+              : 'Verifikasi Cuti Belum Dilakukan'}
           </h2>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: 1.7, marginBottom: '2rem' }}>
             {isWaiting
-              ? <>Akun orang tua atas nama <strong>{parentNama}</strong> sedang menunggu verifikasi dari <strong>Sekretaris Jurusan</strong>. Form cuti akan terbuka setelah disetujui.</>
+              ? <>Verifikasi cuti dengan data orang tua/wali <strong>{parentNama}</strong> sedang menunggu persetujuan dari <strong>Sekretaris Jurusan</strong>. Form cuti akan terbuka setelah disetujui.</>
               : isDitolak
-              ? <>Akun orang tua sebelumnya <strong>ditolak</strong> oleh Sekjur. Silakan kembali ke dashboard dan daftarkan ulang akun orang tua.</>
-              : <>Anda belum mendaftarkan akun orang tua. Silakan daftarkan terlebih dahulu dan tunggu persetujuan Sekjur.</>
+              ? <>Verifikasi cuti sebelumnya <strong>ditolak</strong> oleh Sekjur. Silakan kembali ke dashboard dan ajukan ulang verifikasi.</>
+              : <>Anda belum melakukan verifikasi cuti. Silakan kembali ke dashboard untuk mengisi data orang tua/wali dan mengirim verifikasi ke Sekjur.</>
             }
           </p>
           <button
