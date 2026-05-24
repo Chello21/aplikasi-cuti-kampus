@@ -167,7 +167,7 @@ const DashboardSekjur = () => {
           onClick={() => setActiveTab('parent')} 
           className={`btn btn-sm ${activeTab === 'parent' ? 'btn-primary' : 'btn-ghost'}`}
         >
-          👤 Persetujuan Akun Orang Tua ({pendingParents.length})
+          👤 Verifikasi Cuti oleh Orang Tua ({pendingParents.length})
         </button>
       </div>
 
@@ -302,7 +302,7 @@ const DashboardSekjur = () => {
             <div className="empty-state" style={{ padding: '3rem 1rem' }}>
               <div className="empty-state-icon">👥</div>
               <h3>Tidak Ada Antrean</h3>
-              <p>Semua pendaftaran akun Orang Tua mahasiswa telah selesai diproses.</p>
+              <p>Semua pengajuan verifikasi cuti oleh Orang Tua mahasiswa telah selesai diproses.</p>
             </div>
           ) : (
             <div className="table-wrapper">
@@ -312,7 +312,8 @@ const DashboardSekjur = () => {
                     <th>No</th>
                     <th>NIM Mahasiswa</th>
                     <th>Nama Mahasiswa</th>
-                    <th>Nama Orang Tua</th>
+                    <th>Orang Tua / Wali</th>
+                    <th>Hubungan</th>
                     <th>Username Ortu</th>
                     <th>Tanggal Daftar</th>
                     <th>Aksi</th>
@@ -325,6 +326,18 @@ const DashboardSekjur = () => {
                       <td><code style={{ color: 'var(--accent-bright)', fontSize: '0.82rem' }}>{parent.mahasiswa?.username || '-'}</code></td>
                       <td style={{ fontWeight: 500 }}>{parent.mahasiswa?.nama || '-'}</td>
                       <td style={{ fontWeight: 500, color: 'var(--text-primary)' }}>{parent.nama}</td>
+                      <td>
+                        <span style={{ 
+                          background: 'rgba(255,171,64,0.12)', 
+                          color: 'var(--warning)', 
+                          padding: '3px 8px', 
+                          borderRadius: '12px', 
+                          fontSize: '0.78rem',
+                          fontWeight: 600
+                        }}>
+                          {parent.hubungan_ortu || 'Orang Tua'}
+                        </span>
+                      </td>
                       <td><code>{parent.username}</code></td>
                       <td style={{ color: 'var(--text-muted)', fontSize: '0.82rem' }}>{formatDate(parent.created_at)}</td>
                       <td>

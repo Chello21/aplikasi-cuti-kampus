@@ -34,6 +34,10 @@ const User = sequelize.define('User', {
     type: DataTypes.ENUM('Menunggu', 'Disetujui', 'Ditolak'),
     allowNull: true,
   },
+  hubungan_ortu: {
+    type: DataTypes.STRING(50),
+    allowNull: true,
+  },
 }, {
   tableName: 'users',
   timestamps: true,

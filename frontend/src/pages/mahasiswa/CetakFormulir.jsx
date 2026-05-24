@@ -179,7 +179,7 @@ const CetakFormulir = () => {
         {/* Tanda Tangan Orang Tua & Mahasiswa */}
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '40px' }}>
           <div style={{ textAlign: 'center', width: '250px' }}>
-            Orang Tua / Wali
+            Orang Tua / Wali {data.mahasiswa?.parent?.hubungan_ortu ? `(${data.mahasiswa.parent.hubungan_ortu})` : ''}
             <div style={{ height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               {data.mahasiswa?.parent ? (
                 <div style={{ border: '2px solid #2e7d32', color: '#2e7d32', padding: '5px', fontWeight: 'bold', transform: 'rotate(-5deg)', fontSize: '14px', borderRadius: '4px' }}>

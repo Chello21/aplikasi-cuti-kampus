@@ -13,7 +13,7 @@ const StatusCuti = () => {
   // State untuk akun orang tua
   const [parent, setParent] = useState(null);
   const [loadingParent, setLoadingParent] = useState(true);
-  const [parentForm, setParentForm] = useState({ nama: '', username: '', password: '' });
+  const [parentForm, setParentForm] = useState({ nama: '', username: '', password: '', hubungan_ortu: '' });
   const [parentError, setParentError] = useState('');
   const [parentLoading, setParentLoading] = useState(false);
 
@@ -47,7 +47,7 @@ const StatusCuti = () => {
   const handleCreateParent = async (e) => {
     e.preventDefault();
     setParentError('');
-    if (!parentForm.nama || !parentForm.username || !parentForm.password) {
+    if (!parentForm.nama || !parentForm.username || !parentForm.password || !parentForm.hubungan_ortu) {
       setParentError('Semua field wajib diisi');
       return;
     }
@@ -57,7 +57,7 @@ const StatusCuti = () => {
       toast.success(res.data.message);
       setParent(res.data.data);
     } catch (err) {
-      setParentError(err.response?.data?.message || 'Gagal mendaftarkan akun orang tua');
+      setParentError(err.response?.data?.message || 'Gagal mengajukan verifikasi orang tua');
     } finally {
       setParentLoading(false);
     }
@@ -103,15 +103,15 @@ const StatusCuti = () => {
       {showParentForm ? (
         <div className="card" style={{ maxWidth: '500px', margin: '0 auto 2rem auto', padding: '2rem' }}>
           <div className="card-title" style={{ marginBottom: '1rem', color: 'var(--warning)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            🔒 Hubungkan Akun Orang Tua
+            🔒 Verifikasi Akun Cuti oleh Orang Tua
           </div>
           <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '1.5rem', lineHeight: '1.6' }}>
-            Sebelum dapat mengajukan cuti akademik, Anda **wajib mendaftarkan akun Orang Tua** Anda terlebih dahulu. Akun ini memerlukan **persetujuan Sekjur** agar terverifikasi.
+            Sebelum dapat mengajukan cuti akademik, Anda **wajib mengirimkan Verifikasi Pengajuan Cuti kepada Orang Tua** Anda terlebih dahulu. Ini berfungsi sebagai pemberitahuan resmi bahwa Anda akan mengambil cuti akademik, dan memerlukan persetujuan verifikasi langsung dari **Sekretaris Jurusan** agar akun terhubung secara sah.
           </p>
 
           {parent?.status_ortu === 'Ditolak' && (
             <div className="alert alert-error" style={{ marginBottom: '1rem' }}>
-              ⚠️ Akun Orang Tua sebelumnya ditolak oleh Sekjur. Silakan buat ulang dengan benar.
+              ⚠️ Pengajuan verifikasi Orang Tua sebelumnya ditolak oleh Sekjur. Silakan ajukan ulang dengan benar.
             </div>
           )}
 
@@ -119,7 +119,7 @@ const StatusCuti = () => {
 
           <form onSubmit={handleCreateParent}>
             <div className="form-group">
-              <label className="form-label">Nama Lengkap Orang Tua *</label>
+              <label className="form-label">Nama Lengkap Orang Tua / Wali *</label>
               <input 
                 type="text" 
                 className="form-control" 
@@ -129,8 +129,24 @@ const StatusCuti = () => {
                 required 
               />
             </div>
+            
             <div className="form-group">
-              <label className="form-label">Username untuk Orang Tua *</label>
+              <label className="form-label">Hubungan Keluarga *</label>
+              <select
+                className="form-control"
+                value={parentForm.hubungan_ortu}
+                onChange={e => setParentForm({ ...parentForm, hubungan_ortu: e.target.value })}
+                required
+              >
+                <option value="">-- Pilih Hubungan --</option>
+                <option value="Ayah Kandung">Ayah Kandung</option>
+                <option value="Ibu Kandung">Ibu Kandung</option>
+                <option value="Orang Tua Wali">Orang Tua Wali</option>
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Username untuk Orang Tua / Wali *</label>
               <input 
                 type="text" 
                 className="form-control" 
@@ -141,7 +157,7 @@ const StatusCuti = () => {
               />
             </div>
             <div className="form-group">
-              <label className="form-label">Password Akun Orang Tua *</label>
+              <label className="form-label">Password Akun Orang Tua / Wali *</label>
               <input 
                 type="password" 
                 className="form-control" 
@@ -152,7 +168,7 @@ const StatusCuti = () => {
               />
             </div>
             <button type="submit" className="btn btn-warning btn-block" style={{ marginTop: '1rem' }} disabled={parentLoading}>
-              {parentLoading ? 'Mendaftarkan...' : '🔗 Daftarkan & Ajukan ke Sekjur'}
+              {parentLoading ? 'Mengirimkan...' : '🔗 Kirim Verifikasi & Ajukan ke Sekjur'}
             </button>
           </form>
         </div>
@@ -161,15 +177,15 @@ const StatusCuti = () => {
           <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
             <span style={{ fontSize: '1.75rem', marginTop: '2px' }}>⏳</span>
             <div style={{ flex: 1 }}>
-              <h3 style={{ color: 'var(--warning)', margin: 0, fontSize: '1rem' }}>Menunggu Persetujuan Akun Orang Tua</h3>
+              <h3 style={{ color: 'var(--warning)', margin: 0, fontSize: '1rem' }}>Menunggu Persetujuan Verifikasi Cuti Orang Tua</h3>
               <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', margin: '4px 0 0 0', lineHeight: 1.5 }}>
-                Akun orang tua atas nama **{parent.nama}** (`{parent.username}`) telah diajukan. Saat ini sedang ditinjau oleh **Sekretaris Jurusan**. Formulir cuti akan terbuka setelah disetujui.
+                Pengajuan verifikasi cuti oleh Orang Tua/Wali (<strong>{parent.hubungan_ortu}</strong>) atas nama **{parent.nama}** (`{parent.username}`) telah diajukan. Saat ini berkas verifikasi sedang ditinjau oleh **Sekretaris Jurusan**. Formulir cuti akan terbuka setelah disetujui.
               </p>
               
               {/* Button WA Integrasi */}
               {(() => {
                 const localUser = JSON.parse(localStorage.getItem('user') || '{}');
-                const message = `Halo Bapak/Ibu Sekjur, saya ${localUser.nama || ''} (NIM: ${localUser.username || ''}) ingin memohon konfirmasi persetujuan akun Orang Tua saya di sistem cuti akademik.\n\nDetail Akun Orang Tua:\n- Nama: ${parent.nama}\n- Username: ${parent.username}\n\nMohon bantuannya untuk menyetujui akun tersebut agar saya bisa melanjutkan pengisian form cuti. Terima kasih.`;
+                const message = `Halo Bapak/Ibu Sekjur, saya ${localUser.nama || ''} (NIM: ${localUser.username || ''}) ingin memohon konfirmasi persetujuan verifikasi akun cuti oleh Orang Tua/Wali saya (${parent.hubungan_ortu}) atas nama ${parent.nama} di sistem.\n\nDetail Akun Orang Tua:\n- Nama: ${parent.nama}\n- Hubungan: ${parent.hubungan_ortu}\n- Username: ${parent.username}\n\nMohon bantuannya untuk menyetujui verifikasi akun tersebut agar saya bisa melanjutkan pengisian form cuti. Terima kasih.`;
                 const waLink = `https://wa.me/6285176803384?text=${encodeURIComponent(message)}`;
                 return (
                   <a 
@@ -201,9 +217,9 @@ const StatusCuti = () => {
           <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
             <span style={{ fontSize: '1.5rem' }}>✅</span>
             <div>
-              <h4 style={{ color: 'var(--success)', margin: 0, fontSize: '0.9rem' }}>Akun Orang Tua Terhubung & Terverifikasi</h4>
+              <h4 style={{ color: 'var(--success)', margin: 0, fontSize: '0.9rem' }}>Verifikasi Akun Cuti oleh Orang Tua Berhasil</h4>
               <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: '2px 0 0 0' }}>
-                Wali: **{parent.nama}** | Status persetujuan orang tua otomatis berlaku ketika mengajukan cuti.
+                Wali Terverifikasi: <strong>{parent.nama} ({parent.hubungan_ortu})</strong> | Notifikasi/konfirmasi cuti telah disetujui oleh Sekjur.
               </p>
             </div>
           </div>

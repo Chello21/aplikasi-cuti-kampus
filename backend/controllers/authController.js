@@ -66,22 +66,22 @@ const getMe = async (req, res) => {
 // POST /api/auth/parent
 const createParentAccount = async (req, res) => {
   try {
-    const { nama, username, password } = req.body;
-    if (!nama || !username || !password) {
+    const { nama, username, password, hubungan_ortu } = req.body;
+    if (!nama || !username || !password || !hubungan_ortu) {
       return res.status(400).json({ message: 'Semua field wajib diisi' });
     }
     if (req.user.role !== 'mahasiswa') {
-      return res.status(403).json({ message: 'Akses ditolak: Hanya mahasiswa yang dapat membuat akun Orang Tua' });
+      return res.status(403).json({ message: 'Akses ditolak: Hanya mahasiswa yang dapat mengajukan verifikasi orang tua' });
     }
     
     // Cari apakah mahasiswa sudah punya akun orang tua
     const existingParent = await User.findOne({ where: { mahasiswa_id: req.user.id, role: 'orang_tua' } });
     if (existingParent) {
       if (existingParent.status_ortu === 'Disetujui') {
-        return res.status(400).json({ message: 'Akun Orang Tua sudah dibuat dan telah disetujui' });
+        return res.status(400).json({ message: 'Akun Orang Tua sudah diverifikasi dan disetujui' });
       }
       if (existingParent.status_ortu === 'Menunggu') {
-        return res.status(400).json({ message: 'Akun Orang Tua sedang menunggu persetujuan Sekjur' });
+        return res.status(400).json({ message: 'Akun Orang Tua sedang menunggu persetujuan verifikasi Sekjur' });
       }
       // Jika status ditolak, hapus pengajuan lama untuk membolehkan pengajuan ulang
       await existingParent.destroy();
@@ -100,10 +100,11 @@ const createParentAccount = async (req, res) => {
       password: hashedPassword,
       role: 'orang_tua',
       mahasiswa_id: req.user.id,
-      status_ortu: 'Menunggu'
+      status_ortu: 'Menunggu',
+      hubungan_ortu
     });
 
-    res.status(201).json({ message: 'Akun Orang Tua berhasil diajukan, menunggu persetujuan Sekjur', data: parent });
+    res.status(201).json({ message: 'Verifikasi akun cuti oleh orang tua berhasil diajukan, menunggu persetujuan Sekjur', data: parent });
   } catch (err) {
     res.status(500).json({ message: 'Terjadi kesalahan server', error: err.message });
   }
@@ -117,7 +118,7 @@ const getParentAccount = async (req, res) => {
     }
     const parent = await User.findOne({ 
       where: { mahasiswa_id: req.user.id, role: 'orang_tua' },
-      attributes: ['id', 'nama', 'username', 'status_ortu', 'created_at']
+      attributes: ['id', 'nama', 'username', 'status_ortu', 'hubungan_ortu', 'created_at']
     });
     res.json({ data: parent });
   } catch (err) {
