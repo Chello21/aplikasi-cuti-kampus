@@ -158,13 +158,41 @@ const StatusCuti = () => {
         </div>
       ) : parent.status_ortu === 'Menunggu' ? (
         <div className="card" style={{ maxWidth: '600px', margin: '0 auto 2rem auto', borderLeft: '4px solid var(--warning)', padding: '1.5rem' }}>
-          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-            <span style={{ fontSize: '1.75rem' }}>⏳</span>
-            <div>
+          <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+            <span style={{ fontSize: '1.75rem', marginTop: '2px' }}>⏳</span>
+            <div style={{ flex: 1 }}>
               <h3 style={{ color: 'var(--warning)', margin: 0, fontSize: '1rem' }}>Menunggu Persetujuan Akun Orang Tua</h3>
               <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', margin: '4px 0 0 0', lineHeight: 1.5 }}>
                 Akun orang tua atas nama **{parent.nama}** (`{parent.username}`) telah diajukan. Saat ini sedang ditinjau oleh **Sekretaris Jurusan**. Formulir cuti akan terbuka setelah disetujui.
               </p>
+              
+              {/* Button WA Integrasi */}
+              {(() => {
+                const localUser = JSON.parse(localStorage.getItem('user') || '{}');
+                const message = `Halo Bapak/Ibu Sekjur, saya ${localUser.nama || ''} (NIM: ${localUser.username || ''}) ingin memohon konfirmasi persetujuan akun Orang Tua saya di sistem cuti akademik.\n\nDetail Akun Orang Tua:\n- Nama: ${parent.nama}\n- Username: ${parent.username}\n\nMohon bantuannya untuk menyetujui akun tersebut agar saya bisa melanjutkan pengisian form cuti. Terima kasih.`;
+                const waLink = `https://wa.me/6285176803384?text=${encodeURIComponent(message)}`;
+                return (
+                  <a 
+                    href={waLink} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="btn" 
+                    style={{ 
+                      marginTop: '1rem', 
+                      display: 'inline-flex', 
+                      alignItems: 'center', 
+                      gap: '8px', 
+                      background: '#25D366', 
+                      color: '#fff', 
+                      border: 'none',
+                      fontWeight: 600,
+                      textDecoration: 'none'
+                    }}
+                  >
+                    💬 Kirim Konfirmasi ke WA Sekjur
+                  </a>
+                );
+              })()}
             </div>
           </div>
         </div>
