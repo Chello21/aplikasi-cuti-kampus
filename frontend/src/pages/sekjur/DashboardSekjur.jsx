@@ -44,12 +44,9 @@ const DashboardSekjur = () => {
   }, []);
 
   useEffect(() => {
-    if (activeTab === 'parent') {
-      fetchPendingParents();
-    } else {
-      fetchData();
-    }
-  }, [activeTab, fetchData, fetchPendingParents]);
+    fetchData();
+    fetchPendingParents();
+  }, [fetchData, fetchPendingParents]);
 
   useEffect(() => {
     let result = data;
@@ -223,6 +220,13 @@ const DashboardSekjur = () => {
                   ✕ Reset
                 </button>
               )}
+              <button 
+                className="btn btn-outline btn-sm" 
+                onClick={() => { fetchData(); fetchPendingParents(); }} 
+                style={{ display: 'flex', alignItems: 'center', gap: '6px', marginLeft: 'auto' }}
+              >
+                🔄 Refresh Data
+              </button>
             </div>
 
             {loading ? (
