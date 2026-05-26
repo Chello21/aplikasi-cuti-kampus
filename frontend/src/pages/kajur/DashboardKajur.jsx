@@ -161,6 +161,9 @@ const DashboardKajur = () => {
           {(search || filterStatus) && (
             <button className="btn btn-ghost btn-sm" onClick={() => { setSearch(''); setFilterStatus(''); }}>✕ Reset</button>
           )}
+          <button className="btn btn-outline btn-sm" onClick={fetchData} style={{ display: 'flex', alignItems: 'center', gap: '6px', marginLeft: 'auto' }}>
+            🔄 Refresh Data
+          </button>
         </div>
 
         {loading ? (

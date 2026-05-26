@@ -247,6 +247,8 @@ const DashboardSekjur = () => {
                       <th>Program Studi</th>
                       <th>Tanggal</th>
                       <th>Status Sekjur</th>
+                      <th>Status Kajur</th>
+                      <th>Status Akademik</th>
                       <th>Status Wadir 1</th>
                       <th>Aksi</th>
                     </tr>
@@ -260,6 +262,8 @@ const DashboardSekjur = () => {
                         <td style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>{item.program_studi}</td>
                         <td style={{ color: 'var(--text-muted)', fontSize: '0.82rem', whiteSpace: 'nowrap' }}>{formatDate(item.created_at)}</td>
                         <td><StatusBadge status={item.status_sekjur} /></td>
+                        <td><StatusBadge status={item.status_kajur} /></td>
+                        <td><StatusBadge status={item.status_akademik} /></td>
                         <td><StatusBadge status={item.status_wadir} /></td>
                         <td>
                           <div style={{ display: 'flex', gap: '8px' }}>
