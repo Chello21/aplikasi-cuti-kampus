@@ -23,7 +23,11 @@ app.use(cors({
     'http://polimdoelektrocuti.ac.id',
     'https://polimdoelektrocuti.ac.id',
     'http://www.polimdoelektrocuti.ac.id',
-    'https://www.polimdoelektrocuti.ac.id'
+    'https://www.polimdoelektrocuti.ac.id',
+    'http://polimdoelektrocuti.my.id',
+    'https://polimdoelektrocuti.my.id',
+    'http://www.polimdoelektrocuti.my.id',
+    'https://www.polimdoelektrocuti.my.id'
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
